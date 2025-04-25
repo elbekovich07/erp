@@ -1,9 +1,13 @@
-from rest_framework import viewsets, filters
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from erp.models import *
-from erp.serializers import CategorySerializer, CourseSerializer, TeacherSerializer, GroupSerializer, ModuleSerializer, \
+from erp.serializers import CategorySerializer, CourseModelSerializer, TeacherSerializer, GroupSerializer, \
+    ModuleSerializer, \
     HomeworkSerializer, VideoSerializer, StudentSerializer
 
 
@@ -21,7 +25,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def courses(self, request, pk=None):
         category = self.get_object()
         courses = category.courses.all()
-        serializer = CourseSerializer(courses, many=True)
+        serializer = CourseModelSerializer(courses, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
@@ -31,7 +35,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    serializer_class = CourseModelSerializer
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ['name', ]
     ordering_fields = ['name', ]
@@ -46,6 +50,37 @@ class CourseViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def count(self, request):
         return Response({'total_courses': Course.objects.count()})
+
+
+class StudentApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        students = Student.objects.all()
+        serializer = StudentSerializer(students, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = StudentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None):
+        student = get_object_or_404(Student, pk=pk)
+        serializer = StudentSerializer(student, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None):
+        student = get_object_or_404(Student, pk=pk)
+        student.delete()
+        return Response({"message": "Student deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -107,13 +142,3 @@ class VideoViewSet(viewsets.ModelViewSet):
         return Response({'total_videos': Video.objects.count()})
 
 
-class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
-    search_fields = ['first_name', 'last_name', 'phone_number', 'student_code']
-    ordering_fields = ['first_name', 'last_name']
-
-    @action(detail=False, methods=['get'])
-    def count(self, request):
-        return Response({'total_students': Student.objects.count()})

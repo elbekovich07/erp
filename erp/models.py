@@ -1,9 +1,6 @@
 import random
-from tkinter.constants import CASCADE
-
-from django.db import models
-
 from datetime import timedelta
+
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
@@ -88,6 +85,7 @@ class Module(models.Model):
                               on_delete=models.CASCADE,
                               related_name='modules')
     is_given = models.BooleanField(default=False)
+    date_passed = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title
@@ -109,10 +107,11 @@ class Homework(models.Model):
 
 class Video(models.Model):
     title = models.CharField(max_length=150)
-    description = models.TextField(blank=True, null=True)
     video = models.FileField(upload_to='videos/')
     created_at = models.DateTimeField(default=timezone.now)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='videos')
+    module = models.ForeignKey(Module,
+                               on_delete=models.CASCADE,
+                               related_name='videos')
 
     def __str__(self):
         return self.title
