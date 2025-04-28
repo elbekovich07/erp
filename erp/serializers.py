@@ -36,7 +36,7 @@ class StudentSerializer(serializers.ModelSerializer):
             'student_code', 'group', 'group_name'
         ]
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': False}
         }
 
     def get_group_name(self, obj):
