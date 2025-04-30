@@ -50,4 +50,4 @@ class ModuleAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ('title', 'video', 'module')
+    list_display = ('title', 'file', 'module')

@@ -62,7 +62,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
-        fields = '__all__'
+        exclude = ('is_given',)
 
 
 class HomeworkSerializer(serializers.ModelSerializer):
@@ -70,10 +70,20 @@ class HomeworkSerializer(serializers.ModelSerializer):
         model = Homework
         fields = '__all__'
 
+    def save(self, **kwargs):
+        homework = super().save(**kwargs)
+        module = homework.module
+        module.is_active = True
+        module.save()
+        return homework
 
 class VideoSerializer(serializers.ModelSerializer):
+    formatted_size = serializers.ReadOnlyField()
+    status = serializers.SerializerMethodField()
+
     class Meta:
         model = Video
-        fields = '__all__'
+        fields = ['id', 'title', 'file', 'created_at', 'module', 'status', 'formatted_size']
 
-
+    def get_status(self, obj):
+        return obj.status

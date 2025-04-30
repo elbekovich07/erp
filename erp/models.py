@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import timedelta
 
@@ -106,12 +107,43 @@ class Homework(models.Model):
 
 
 class Video(models.Model):
-    title = models.CharField(max_length=150)
-    video = models.FileField(upload_to='videos/')
+    class StatusChoice(models.TextChoices):
+        UPLOADING = 'uploading'
+        READY = 'ready'
+
+    title = models.CharField(max_length=150, blank=True)
+    file = models.FileField(upload_to='videos/')
     created_at = models.DateTimeField(default=timezone.now)
-    module = models.ForeignKey(Module,
-                               on_delete=models.CASCADE,
-                               related_name='videos')
+    module = models.ForeignKey('Module', on_delete=models.CASCADE, related_name='videos')
+    status = models.CharField(
+        max_length=10,
+        choices=StatusChoice.choices,
+        default=StatusChoice.UPLOADING,
+        editable=False
+    )
+
+    @property
+    def video_size(self):
+        if self.file and hasattr(self.file, 'path'):
+            try:
+                return os.path.getsize(self.file.path) / (1024 * 1024)  # bytes to MB
+            except FileNotFoundError:
+                return None
+        return None
+
+    @property
+    def formatted_size(self):
+        size_mb = self.video_size
+        if size_mb is None:
+            return "Unknown size"
+        if size_mb >= 1000:
+            return f"{size_mb / 1024:.2f} GB"
+        return f"{size_mb:.2f} MB"
+
+    def save(self, *args, **kwargs):
+        if not self.title and self.file:
+            self.title = os.path.basename(self.file.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
