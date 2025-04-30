@@ -24,9 +24,15 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'courses', 'course_count']
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = '__all__'
+
+
 class StudentSerializer(serializers.ModelSerializer):
     student_code = serializers.CharField(read_only=True)
-    group_name = serializers.SerializerMethodField()
+    group_name = GroupSerializer(read_only=True)
 
     class Meta:
         model = Student
@@ -53,10 +59,6 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Group
-        fields = '__all__'
 
 
 class ModuleSerializer(serializers.ModelSerializer):
