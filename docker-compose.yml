@@ -29,5 +29,6 @@ services:
     image: redis:alpine
     restart: always
 
+
 volumes:
   postgres_data:
