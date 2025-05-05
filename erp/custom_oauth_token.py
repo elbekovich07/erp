@@ -6,6 +6,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -20,8 +21,8 @@ class CustomAuthToken(ObtainAuthToken):
         return Response({
             'token': token.key,
             'username': user.username,
-            'email': user.id,
-            'craeted': created
+            'email': user.email,
+            'created': created
         })
 
 
@@ -65,8 +66,10 @@ class LoginAPIView(APIView):
             return Response({'detail': 'Invalid credentials'}, status=401)
 
 
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def post(self, request):
         try:
@@ -74,5 +77,5 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
-        except Token.DoesNotExist:
-            return Response({'detail': 'Token Not Found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response({'detail': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,16 +1,21 @@
 
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import filters, status
+from rest_framework.authentication import BasicAuthentication, TokenAuthentication
+from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication
+
 from erp.serializers import *
 from .permissions import IsWithInWorkingHours, WeekdayOnly
 
 
+@method_decorator(cache_page(60), name='get')
 class CategoryApiView(GenericAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
@@ -49,11 +54,6 @@ class CategoryApiView(GenericAPIView):
         return Response({'message': 'Category deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class CategoryCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
-
-    def get(self, request):
-        return Response({'total_categories': Category.objects.count()})
 
 
 class CourseApiView(GenericAPIView):
@@ -65,13 +65,9 @@ class CourseApiView(GenericAPIView):
     search_fields = ['name']
     ordering_fields = ['name']
 
-
     def get_queryset(self):
-        queryset = super().get_queryset()
-        category_id = self.request.query_params.get('category')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
-        return queryset
+        category = self.request.query_params.get('category')
+        return self.queryset.filter(category_id=category) if category else self.queryset
 
     def get(self, request, pk=None):
         if pk:
@@ -101,11 +97,6 @@ class CourseApiView(GenericAPIView):
         return Response({'message': 'Course deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class CourseCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
-
-    def get(self, request):
-        return Response({'total_courses': Course.objects.count()})
 
 
 class TeacherApiView(GenericAPIView):
@@ -143,11 +134,6 @@ class TeacherApiView(GenericAPIView):
         return Response({'message': 'Teacher deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class TeacherCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
-
-    def get(self, request):
-        return Response({'total_teachers': Teacher.objects.count()})
 
 
 class GroupApiView(GenericAPIView):
@@ -183,11 +169,6 @@ class GroupApiView(GenericAPIView):
         return Response({'message': 'Group deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class GroupCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
-
-    def get(self, request):
-        return Response({'total_groups': Group.objects.count()})
 
 
 class ModuleApiView(GenericAPIView):
@@ -213,11 +194,6 @@ class ModuleApiView(GenericAPIView):
         return Response(serializer.data)
 
 
-class ModuleCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
-
-    def get(self, request):
-        return Response({'total_modules': Module.objects.count()})
 
 
 class HomeworkApiView(GenericAPIView):
@@ -253,11 +229,6 @@ class HomeworkDownloadApiView(APIView):
         return response
 
 
-class HomeworkCountApiView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response({'total_homeworks': Homework.objects.count()})
 
 
 class VideoApiView(GenericAPIView):
@@ -277,11 +248,6 @@ class VideoApiView(GenericAPIView):
 
 
 
-class VideoCountApiView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response({'total_videos': Video.objects.count()})
 
 
 class StudentApiView(GenericAPIView):
@@ -317,3 +283,26 @@ class StudentApiView(GenericAPIView):
         student = get_object_or_404(Student, pk=pk)
         student.delete()
         return Response({'message': 'Student deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class CountApiView(APIView):
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
+
+    def get(self, request):
+        return Response({
+            'total_categories': Category.objects.count(),
+            'total_courses': Course.objects.count(),
+            'total_teachers': Teacher.objects.count(),
+            'total_groups': Group.objects.count(),
+            'total_modules': Module.objects.count(),
+            'total_homeworks': Homework.objects.count(),
+            'total_videos': Video.objects.count(),
+            'total_students': Student.objects.count()
+        })
+
+
+@api_view(['GET'])
+@cache_page(60 * 2)
+def product_list_api(request):
+    categories = Category.objects.all().values('id', 'name')
+    return Response({'categories': categories})
