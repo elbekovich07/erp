@@ -6,15 +6,16 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 from erp.serializers import *
-from .permissions import IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly
+from .permissions import IsWithInWorkingHours, WeekdayOnly
 
 
 class CategoryApiView(GenericAPIView):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
     lookup_field = 'pk'
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ['name']
@@ -49,7 +50,7 @@ class CategoryApiView(GenericAPIView):
 
 
 class CategoryCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
 
     def get(self, request):
         return Response({'total_categories': Category.objects.count()})
@@ -58,7 +59,7 @@ class CategoryCountApiView(APIView):
 class CourseApiView(GenericAPIView):
     serializer_class = CourseModelSerializer
     queryset = Course.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
     lookup_field = 'pk'
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ['name']
@@ -101,7 +102,7 @@ class CourseApiView(GenericAPIView):
 
 
 class CourseCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
 
     def get(self, request):
         return Response({'total_courses': Course.objects.count()})
@@ -110,7 +111,7 @@ class CourseCountApiView(APIView):
 class TeacherApiView(GenericAPIView):
     serializer_class = TeacherSerializer
     queryset = Teacher.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
     lookup_field = 'pk'
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
 
@@ -143,7 +144,7 @@ class TeacherApiView(GenericAPIView):
 
 
 class TeacherCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
 
     def get(self, request):
         return Response({'total_teachers': Teacher.objects.count()})
@@ -152,7 +153,7 @@ class TeacherCountApiView(APIView):
 class GroupApiView(GenericAPIView):
     serializer_class = GroupSerializer
     queryset = Group.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
 
     def get(self, request, pk=None):
         if pk:
@@ -183,7 +184,7 @@ class GroupApiView(GenericAPIView):
 
 
 class GroupCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
 
     def get(self, request):
         return Response({'total_groups': Group.objects.count()})
@@ -192,7 +193,7 @@ class GroupCountApiView(APIView):
 class ModuleApiView(GenericAPIView):
     serializer_class = ModuleSerializer
     queryset = Module.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
     lookup_field = 'pk'
 
     def get_queryset(self):
@@ -213,7 +214,7 @@ class ModuleApiView(GenericAPIView):
 
 
 class ModuleCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
 
     def get(self, request):
         return Response({'total_modules': Module.objects.count()})
@@ -243,7 +244,7 @@ class HomeworkApiView(GenericAPIView):
 
 
 class HomeworkDownloadApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         homework = get_object_or_404(Homework, pk=pk)
@@ -253,7 +254,7 @@ class HomeworkDownloadApiView(APIView):
 
 
 class HomeworkCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response({'total_homeworks': Homework.objects.count()})
@@ -262,7 +263,7 @@ class HomeworkCountApiView(APIView):
 class VideoApiView(GenericAPIView):
     serializer_class = VideoSerializer
     queryset = Video.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
 
     def get(self, request, pk=None):
@@ -277,7 +278,7 @@ class VideoApiView(GenericAPIView):
 
 
 class VideoCountApiView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response({'total_videos': Video.objects.count()})
@@ -286,7 +287,7 @@ class VideoCountApiView(APIView):
 class StudentApiView(GenericAPIView):
     serializer_class = StudentSerializer
     queryset = Student.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminOrTeacherOrSelf, IsWithInWorkingHours, WeekdayOnly]
+    permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
     lookup_field = 'pk'
 
     def get(self, request, pk=None):

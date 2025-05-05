@@ -32,24 +32,27 @@ class IsPostEditable(BasePermission):
 
 
 class IsWithInWorkingHours(BasePermission):
-    message = ('Oops!!!',
-               'Sorry, working hours are from 9:00 to 18:00')
-
-    def has_permission(self, request, view):
-        now = timezone.localtime().time()
-
-        start_time = time(9, 0)
-        end_time = time(18, 0)
-
-        return start_time <= now <= end_time
+    pass
+    # message = ('Oops!!!',
+    #            'Sorry, working hours are from 9:00 to 18:00')
+    #
+    # def has_permission(self, request, view):
+    #     now = timezone.localtime().time()
+    #
+    #     start_time = time(9, 0)
+    #     end_time = time(20, 0)
+    #
+    #     return start_time <= now <= end_time
 
 class WeekdayOnly(BasePermission):
-
-    message = 'Sorry, today is not a working day.'
-
-    def has_permission(self, request, view):
-        now = timezone.localtime().time()
-        return timezone.now().weekday() < 6
+    pass
+    #
+    # message = 'Sorry, today is not a working day.'
+    #
+    # def has_permission(self, request, view):
+    #     now = timezone.localtime().time()
+    #     return timezone.now().weekday() < 7
+    #
 
 
 
