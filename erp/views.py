@@ -4,12 +4,11 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import filters
+from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-
 
 from erp.serializers import *
 from .permissions import IsWithInWorkingHours, WeekdayOnly
@@ -74,7 +73,7 @@ class CategoryApiView(GenericAPIView):
 @method_decorator(cache_page(60), name='get')
 class CourseApiView(GenericAPIView):
     serializer_class = CourseModelSerializer
-    queryset = Course.objects.all()
+    queryset = Course.objects.select_related('course').all()
     permission_classes = [IsAuthenticated, IsWithInWorkingHours, WeekdayOnly]
     lookup_field = 'pk'
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
@@ -297,7 +296,8 @@ class HomeworkApiView(GenericAPIView):
             serializer = self.get_serializer(homework)
             return Response(serializer.data)
 
-        cache_key = f'homework_list_{request.GET.get("homework", "all")}'
+        module_id = request.GET.get('module_id', 'all')
+        cache_key = f'homework_list_{module_id}'
         cache_data = cache.get(cache_key)
         if cache_data:
             return Response(cache_data, status=status.HTTP_200_OK)
@@ -305,12 +305,9 @@ class HomeworkApiView(GenericAPIView):
         homeworks = self.get_queryset()
         paginated_queryset = self.paginate_queryset(homeworks)
         if paginated_queryset is not None:
-            serializer = self.get_serializer(homeworks, many=True)
-            cache.set(cache_key, serializer.data)
-            return Response(serializer.data)
-
-        if not homeworks.file:
-            return Response({'detail': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+            serializer = self.get_serializer(paginated_queryset, many=True)
+            cache.set(cache_key, serializer.data, 60)
+            return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(homeworks, many=True)
         cache.set(cache_key, serializer.data, 60)
@@ -371,7 +368,7 @@ class StudentApiView(GenericAPIView):
             serializer = self.get_serializer(student)
             return Response(serializer.data)
 
-        cache_key = f'student_list_{request.GET.get("student", "all")}'
+        cache_key = f'student_list_all{request.GET.get("student", "all")}'
         cache_data = cache.get(cache_key)
         if cache_data:
             return Response(cache_data, status=status.HTTP_200_OK)
@@ -398,7 +395,7 @@ class StudentApiView(GenericAPIView):
 
     def put(self, request, pk):
         student = get_object_or_404(self.get_queryset(), pk=pk)
-        serializer = self.get_serializer(student, data=request.data)
+        serializer = self.get_serializer(student, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
