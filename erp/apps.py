@@ -7,4 +7,3 @@ class ErpConfig(AppConfig):
 
     def ready(self):
         import erp.signals
-

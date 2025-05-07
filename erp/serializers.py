@@ -25,9 +25,10 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    courses = CourseModelSerializer(many=True, read_only=True)
     class Meta:
         model = Group
-        fields = '__all__'
+        fields = ['name','course', 'teacher', 'started_at','ended_at','status']
 
 
 class StudentSerializer(serializers.ModelSerializer):

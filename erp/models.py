@@ -60,9 +60,9 @@ class Course(models.Model):
 
 class Group(models.Model):
     class StatusChoice(models.TextChoices):
-        NOT_STARTED = 'boshlanmagan'
-        ACTIVE = 'faol'
-        FINISHED = 'tugagan'
+        NOT_STARTED = 'Not started'
+        ACTIVE = 'Active'
+        FINISHED = 'Finished'
 
     name = models.CharField(max_length=100)
     course = models.ForeignKey(Course,

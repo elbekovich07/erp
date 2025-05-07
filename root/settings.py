@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
+    'debug_toolbar',
+
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #     DEBUG TOOLBAR
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'root.urls'
@@ -157,7 +161,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
 
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'erp.pagination.CustomPagination',
+    'PAGE_SIZE': 100
 }
 from datetime import timedelta
 from root import settings
@@ -209,3 +215,8 @@ CACHES = {
     }
 }
 
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
